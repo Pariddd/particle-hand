@@ -26,13 +26,16 @@ export class ParticleSystem {
     this.scene = scene;
     this.count = Config.particles.COUNT;
 
+    const flowerData = generateFlowerPositions(this.count);
     this.shapes = {
       planet: generatePlanetPositions(this.count),
       text: generateTextPositions(this.count, "I LOVE U WAWA <3"),
       heart: generateHeartPositions(this.count),
       scatter: generateScatterPositions(this.count),
-      flower: generateFlowerPositions(this.count),
+      flower: flowerData.positions,
     };
+    this.flowerCategories = flowerData.categories;
+    this.flowerShades = flowerData.shades;
 
     this.currentShapeName = "planet";
     this._morphTween = null;
@@ -78,6 +81,15 @@ export class ParticleSystem {
       new THREE.BufferAttribute(randomSeed, 1),
     );
 
+    this.geometry.setAttribute(
+      "flowerCategory",
+      new THREE.BufferAttribute(this.flowerCategories, 1),
+    );
+    this.geometry.setAttribute(
+      "flowerShade",
+      new THREE.BufferAttribute(this.flowerShades, 1),
+    );
+
     // Bounding sphere manual (cukup besar untuk cover semua shape) agar Three.js tidak
     // salah frustum-cull object ini padahal sebenarnya masih di dalam view tangan.
     this.geometry.boundingSphere = new THREE.Sphere(
@@ -107,6 +119,7 @@ export class ParticleSystem {
         // Diinisialisasi dengan window.innerHeight saat ini; WAJIB di-update tiap resize
         // via setViewportHeight(), kalau tidak point size akan salah proporsi setelah resize window.
         uViewportHeight: { value: window.innerHeight },
+        uFlowerColorAmount: { value: 0 },
       },
     });
   }
@@ -202,6 +215,11 @@ export class ParticleSystem {
     });
     gsap.to(this.material.uniforms.uTurbulenceAmount, {
       value: shapeName === "scatter" ? 3.5 : 1.0,
+      duration: 0.6,
+      ease: "sine.inOut",
+    });
+    gsap.to(this.material.uniforms.uFlowerColorAmount, {
+      value: shapeName === "flower" ? 1 : 0,
       duration: 0.6,
       ease: "sine.inOut",
     });

@@ -9,6 +9,9 @@
 attribute vec3 positionA;   // posisi shape asal
 attribute vec3 positionB;   // posisi shape target
 attribute float randomSeed; // seed unik per partikel untuk noise/turbulence independen
+attribute float flowerCategory; // 0=petal, 1=stem, 2=leaf (statis, tidak ikut morph posisi)
+attribute float flowerShade;    // 0..1, gradient warna dalam kategori
+uniform float uFlowerColorAmount; // 0..1, blend masuk/keluar warna mawar (lihat ParticleSystem.js)
 
 uniform float uMorphProgress; // 0.0 -> 1.0, di-drive oleh GSAP di JS (lihat ParticleSystem.js)
 uniform float uTime;
@@ -73,6 +76,17 @@ gl_PointSize = uBaseSize * uViewportHeight / -mvPosition.z;
   vAlpha = 0.6 + hash(randomSeed) * 0.4;
 
   // Interpolasi warna biru neon <-> cyan berdasar seed, bukan warna solid tunggal
-  float colorMix = hash(randomSeed * 3.1);
-  vColor = mix(vec3(0.2, 0.55, 1.0), vec3(0.3, 0.95, 1.0), colorMix);
+   float colorMix = hash(randomSeed * 3.1);
+  vec3 baseColor = mix(vec3(0.2, 0.55, 1.0), vec3(0.3, 0.95, 1.0), colorMix);
+
+  vec3 flowerColor;
+  if (flowerCategory < 0.5) {
+    flowerColor = mix(vec3(0.55, 0.02, 0.05), vec3(0.95, 0.15, 0.12), flowerShade); // petal
+  } else if (flowerCategory < 1.5) {
+    flowerColor = mix(vec3(0.05, 0.25, 0.05), vec3(0.15, 0.45, 0.12), flowerShade); // stem
+  } else {
+    flowerColor = mix(vec3(0.10, 0.35, 0.08), vec3(0.20, 0.55, 0.15), flowerShade); // leaf
+  }
+
+  vColor = mix(baseColor, flowerColor, uFlowerColorAmount);
 }
