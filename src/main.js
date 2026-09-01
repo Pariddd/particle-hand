@@ -1,13 +1,19 @@
-import * as THREE from 'three';
-import { Config } from './utils/Config.js';
-import { VideoStream } from './camera/VideoStream.js';
-import { HandTracker } from './hand/HandTracker.js';
-import { computeHandOrientation, computePalmCenter } from './hand/HandOrientation.js';
-import { OneEuroVector3Filter, OneEuroQuaternionFilter } from './hand/OneEuroFilter.js';
-import { classifyGesture } from './gestures/GestureClassifier.js';
-import { GestureStateMachine } from './gestures/GestureStateMachine.js';
-import { ParticleSystem } from './particles/ParticleSystem.js';
-import { BloomComposer } from './effects/BloomComposer.js';
+import * as THREE from "three";
+import { Config } from "./utils/Config.js";
+import { VideoStream } from "./camera/VideoStream.js";
+import { HandTracker } from "./hand/HandTracker.js";
+import {
+  computeHandOrientation,
+  computePalmCenter,
+} from "./hand/HandOrientation.js";
+import {
+  OneEuroVector3Filter,
+  OneEuroQuaternionFilter,
+} from "./hand/OneEuroFilter.js";
+import { classifyGesture } from "./gestures/GestureClassifier.js";
+import { GestureStateMachine } from "./gestures/GestureStateMachine.js";
+import { ParticleSystem } from "./particles/ParticleSystem.js";
+import { BloomComposer } from "./effects/BloomComposer.js";
 
 /**
  * main.js
@@ -19,17 +25,17 @@ import { BloomComposer } from './effects/BloomComposer.js';
  * (lihat analisis performa sebelumnya).
  */
 
-const statusEl = document.getElementById('status-overlay');
-const loadingEl = document.getElementById('loading-overlay');
-const errorEl = document.getElementById('permission-error');
-const videoEl = document.getElementById('camera-video');
-const canvasEl = document.getElementById('three-canvas');
+const statusEl = document.getElementById("status-overlay");
+const loadingEl = document.getElementById("loading-overlay");
+const errorEl = document.getElementById("permission-error");
+const videoEl = document.getElementById("camera-video");
+const canvasEl = document.getElementById("three-canvas");
 
 const GESTURE_TO_SHAPE = {
-  fist: 'planet',
-  peace: 'text', // 2 jari -> teks "I LOVE U" (lihat TextShape.js)
-  iloveyou: 'heart',
-  open: 'scatter', // 5 jari / telapak terbuka -> partikel menyebar (lihat ScatterShape.js)
+  fist: "planet",
+  peace: "text", // 2 jari -> teks "I LOVE U" (lihat TextShape.js)
+  iloveyou: "heart",
+  open: "scatter", // 5 jari / telapak terbuka -> partikel menyebar (lihat ScatterShape.js)
   none: null, // gesture 'none' sengaja TIDAK memicu morph — shape terakhir dipertahankan
 };
 
@@ -42,12 +48,12 @@ class App {
     this.posFilter = new OneEuroVector3Filter(
       Config.filter.MIN_CUTOFF,
       Config.filter.BETA,
-      Config.filter.D_CUTOFF
+      Config.filter.D_CUTOFF,
     );
     this.quatFilter = new OneEuroQuaternionFilter(
       Config.filter.MIN_CUTOFF,
       Config.filter.BETA,
-      Config.filter.D_CUTOFF
+      Config.filter.D_CUTOFF,
     );
 
     this.handVisible = false;
@@ -66,31 +72,31 @@ class App {
     });
 
     try {
-      statusEl.textContent = 'MEMINTA IZIN KAMERA...';
+      statusEl.textContent = "MEMINTA IZIN KAMERA...";
       this.videoStream = new VideoStream(videoEl);
       await this.videoStream.start();
     } catch (err) {
-      console.error('[App] Gagal mengakses kamera:', err);
-      errorEl.style.display = 'flex';
-      loadingEl.classList.add('hidden');
+      console.error("[App] Gagal mengakses kamera:", err);
+      errorEl.style.display = "flex";
+      loadingEl.classList.add("hidden");
       return;
     }
 
     try {
-      statusEl.textContent = 'MEMUAT MODEL HAND LANDMARKER...';
+      statusEl.textContent = "MEMUAT MODEL HAND LANDMARKER...";
       this.handTracker = new HandTracker();
       await this.handTracker.init();
     } catch (err) {
-      console.error('[App] Gagal inisialisasi HandLandmarker:', err);
-      statusEl.textContent = 'GAGAL MEMUAT MODEL TRACKING';
-      loadingEl.classList.add('hidden');
+      console.error("[App] Gagal inisialisasi HandLandmarker:", err);
+      statusEl.textContent = "GAGAL MEMUAT MODEL TRACKING";
+      loadingEl.classList.add("hidden");
       return;
     }
 
-    loadingEl.classList.add('hidden');
-    statusEl.textContent = 'TRACKING AKTIF';
+    loadingEl.classList.add("hidden");
+    statusEl.textContent = "";
 
-    window.addEventListener('resize', () => this._onResize());
+    window.addEventListener("resize", () => this._onResize());
 
     this._renderLoop();
   }
@@ -103,7 +109,7 @@ class App {
       Config.scene.CAMERA_FOV,
       window.innerWidth / window.innerHeight,
       Config.scene.CAMERA_NEAR,
-      Config.scene.CAMERA_FAR
+      Config.scene.CAMERA_FAR,
     );
     this.camera.position.z = Config.scene.CAMERA_Z;
 
@@ -142,7 +148,11 @@ class App {
   }
 
   _initPostProcessing() {
-    this.bloomComposer = new BloomComposer(this.renderer, this.scene, this.camera);
+    this.bloomComposer = new BloomComposer(
+      this.renderer,
+      this.scene,
+      this.camera,
+    );
   }
 
   _onResize() {
@@ -167,7 +177,7 @@ class App {
       // GestureStateMachine tetap menerima 'none' sebagai candidate, tapi baru benar2 berubah
       // setelah CONFIRM_FRAMES — ini mencegah morph balik ke shape default hanya karena
       // oklusi/tracking loss sesaat (misal tangan lewat cepat di depan wajah).
-      this.gestureStateMachine.update('none');
+      this.gestureStateMachine.update("none");
       return;
     }
 
@@ -180,7 +190,7 @@ class App {
     this.mappedTargetPos.set(
       (0.5 - this._rawPalmPos.x) * 6, // mirror + scale ke world units
       (0.5 - this._rawPalmPos.y) * 6,
-      -this._rawPalmPos.z * 4
+      -this._rawPalmPos.z * 4,
     );
     this.posFilter.filter(this.mappedTargetPos, timestampMs);
 
