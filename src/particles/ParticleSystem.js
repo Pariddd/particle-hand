@@ -5,6 +5,7 @@ import { generatePlanetPositions } from "../shapes/PlanetShape.js";
 import { generateTextPositions } from "../shapes/TextShape.js";
 import { generateHeartPositions } from "../shapes/HeartShape.js";
 import { generateScatterPositions } from "../shapes/ScatterShape.js";
+import { generateFlowerPositions } from "../shapes/FlowerShape.js";
 
 import vertexShader from "../shaders/particle.vert.glsl?raw";
 import fragmentShader from "../shaders/particle.frag.glsl?raw";
@@ -30,6 +31,7 @@ export class ParticleSystem {
       text: generateTextPositions(this.count, "I LOVE U WAWA <3"),
       heart: generateHeartPositions(this.count),
       scatter: generateScatterPositions(this.count),
+      flower: generateFlowerPositions(this.count),
     };
 
     this.currentShapeName = "planet";

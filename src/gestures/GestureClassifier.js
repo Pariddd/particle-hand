@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 /**
  * GestureClassifier.js
@@ -15,11 +15,26 @@ import * as THREE from 'three';
 
 const LANDMARK = {
   WRIST: 0,
-  THUMB_CMC: 1, THUMB_MCP: 2, THUMB_IP: 3, THUMB_TIP: 4,
-  INDEX_MCP: 5, INDEX_PIP: 6, INDEX_DIP: 7, INDEX_TIP: 8,
-  MIDDLE_MCP: 9, MIDDLE_PIP: 10, MIDDLE_DIP: 11, MIDDLE_TIP: 12,
-  RING_MCP: 13, RING_PIP: 14, RING_DIP: 15, RING_TIP: 16,
-  PINKY_MCP: 17, PINKY_PIP: 18, PINKY_DIP: 19, PINKY_TIP: 20,
+  THUMB_CMC: 1,
+  THUMB_MCP: 2,
+  THUMB_IP: 3,
+  THUMB_TIP: 4,
+  INDEX_MCP: 5,
+  INDEX_PIP: 6,
+  INDEX_DIP: 7,
+  INDEX_TIP: 8,
+  MIDDLE_MCP: 9,
+  MIDDLE_PIP: 10,
+  MIDDLE_DIP: 11,
+  MIDDLE_TIP: 12,
+  RING_MCP: 13,
+  RING_PIP: 14,
+  RING_DIP: 15,
+  RING_TIP: 16,
+  PINKY_MCP: 17,
+  PINKY_PIP: 18,
+  PINKY_DIP: 19,
+  PINKY_TIP: 20,
 };
 
 const _a = new THREE.Vector3();
@@ -53,27 +68,57 @@ const BENT_THRESHOLD = 100;
 
 function fingerState(lm, mcp, pip, dip) {
   const angle = jointAngleDeg(lm, mcp, pip, dip);
-  if (angle > STRAIGHT_THRESHOLD) return 'open';
-  if (angle < BENT_THRESHOLD) return 'closed';
-  return 'ambiguous';
+  if (angle > STRAIGHT_THRESHOLD) return "open";
+  if (angle < BENT_THRESHOLD) return "closed";
+  return "ambiguous";
 }
 
 /**
  * @param {Array} landmarks - 21 landmark MediaPipe untuk satu tangan
- * @returns {string} salah satu dari: 'fist', 'peace', 'iloveyou', 'open', 'none'
+ * @returns {string} salah satu dari: 'fist', 'peace', 'iloveyou', 'open', 'threeFingers', 'none'
  */
 export function classifyGesture(landmarks) {
   const lm = landmarks;
 
-  const thumb = fingerState(lm, LANDMARK.THUMB_MCP, LANDMARK.THUMB_IP, LANDMARK.THUMB_TIP);
-  const index = fingerState(lm, LANDMARK.INDEX_MCP, LANDMARK.INDEX_PIP, LANDMARK.INDEX_DIP);
-  const middle = fingerState(lm, LANDMARK.MIDDLE_MCP, LANDMARK.MIDDLE_PIP, LANDMARK.MIDDLE_DIP);
-  const ring = fingerState(lm, LANDMARK.RING_MCP, LANDMARK.RING_PIP, LANDMARK.RING_DIP);
-  const pinky = fingerState(lm, LANDMARK.PINKY_MCP, LANDMARK.PINKY_PIP, LANDMARK.PINKY_DIP);
+  const thumb = fingerState(
+    lm,
+    LANDMARK.THUMB_MCP,
+    LANDMARK.THUMB_IP,
+    LANDMARK.THUMB_TIP,
+  );
+  const index = fingerState(
+    lm,
+    LANDMARK.INDEX_MCP,
+    LANDMARK.INDEX_PIP,
+    LANDMARK.INDEX_DIP,
+  );
+  const middle = fingerState(
+    lm,
+    LANDMARK.MIDDLE_MCP,
+    LANDMARK.MIDDLE_PIP,
+    LANDMARK.MIDDLE_DIP,
+  );
+  const ring = fingerState(
+    lm,
+    LANDMARK.RING_MCP,
+    LANDMARK.RING_PIP,
+    LANDMARK.RING_DIP,
+  );
+  const pinky = fingerState(
+    lm,
+    LANDMARK.PINKY_MCP,
+    LANDMARK.PINKY_PIP,
+    LANDMARK.PINKY_DIP,
+  );
 
   // FIST: semua jari (kecuali ibu jari, yang topologinya beda) tertekuk penuh
-  if (index === 'closed' && middle === 'closed' && ring === 'closed' && pinky === 'closed') {
-    return 'fist';
+  if (
+    index === "closed" &&
+    middle === "closed" &&
+    ring === "closed" &&
+    pinky === "closed"
+  ) {
+    return "fist";
   }
 
   // OPEN HAND (lima jari terbuka / telapak terbuka penuh): index+middle+ring+pinky terbuka.
@@ -84,26 +129,45 @@ export function classifyGesture(landmarks) {
   // cukup diskriminatif). Precedence: dicek SETELAH fist (mutually exclusive: fist butuh index
   // closed) dan SEBELUM peace/iloveyou (keduanya mensyaratkan ring === 'closed', jadi tidak akan
   // pernah bentrok logis dengan cabang ini).
-  if (index === 'open' && middle === 'open' && ring === 'open' && pinky === 'open') {
-    return 'open';
+  if (
+    index === "open" &&
+    middle === "open" &&
+    ring === "open" &&
+    pinky === "open"
+  ) {
+    return "open";
+  }
+
+  if (
+    index === "open" &&
+    middle === "open" &&
+    ring === "open" &&
+    pinky === "closed"
+  ) {
+    return "threeFingers";
   }
 
   // PEACE (dua jari): index + middle terbuka, ring + pinky tertekuk. Ibu jari diabaikan
   // (tidak dipakai sebagai syarat) karena posisi natural ibu jari saat peace sign bervariasi antar orang.
-  if (index === 'open' && middle === 'open' && ring === 'closed' && pinky === 'closed') {
-    return 'peace';
+  if (
+    index === "open" &&
+    middle === "open" &&
+    ring === "closed" &&
+    pinky === "closed"
+  ) {
+    return "peace";
   }
 
   // I LOVE YOU (ASL sign): thumb + index + pinky terbuka, middle + ring tertekuk.
   if (
-    thumb === 'open' &&
-    index === 'open' &&
-    pinky === 'open' &&
-    middle === 'closed' &&
-    ring === 'closed'
+    thumb === "open" &&
+    index === "open" &&
+    pinky === "open" &&
+    middle === "closed" &&
+    ring === "closed"
   ) {
-    return 'iloveyou';
+    return "iloveyou";
   }
 
-  return 'none';
+  return "none";
 }

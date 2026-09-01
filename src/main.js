@@ -36,6 +36,7 @@ const GESTURE_TO_SHAPE = {
   peace: "text", // 2 jari -> teks "I LOVE U" (lihat TextShape.js)
   iloveyou: "heart",
   open: "scatter", // 5 jari / telapak terbuka -> partikel menyebar (lihat ScatterShape.js)
+  threeFingers: "flower",
   none: null, // gesture 'none' sengaja TIDAK memicu morph — shape terakhir dipertahankan
 };
 
